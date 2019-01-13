@@ -247,7 +247,9 @@ ex.
         }
 
 
+
 *** Content Type**
+
 **1. [Get의 ContentType]**
 key : "Content-Type", value : "application/json"
 
