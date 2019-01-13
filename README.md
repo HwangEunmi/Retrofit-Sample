@@ -32,10 +32,16 @@ GsonConverterFactory.create() 를 사용하는 것이 좋고, API에 따라 가�
 * Retrofit에는 크게 7개의 어노테이션이 있다.
 
 1. @Query 
+
+
     “`
     ex. @GET("/posts") 
+    
+    
            Call<List<ResponseGet>> getSecond(@Query("userId") String id);
    “`
+	
+	
            일 때, url은 http://jsonplaceholder.typicode.com/posts?userId=1 가 된다.
 
 2. @Path 
