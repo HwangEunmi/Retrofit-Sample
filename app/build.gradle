@@ -21,7 +21,11 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0' // Retrofit
+    implementation 'com.squareup.retrofit2:converter-gson:2.1.0' // GsonConverterFactory.create()
+    implementation 'com.squareup.retrofit2:converter-scalars:2.1.0' // ScalarsConverterFactory.create()
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1' // HttpLoggingInterceptor
+    implementation 'com.google.code.gson:gson:2.8.1' // Gson
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
