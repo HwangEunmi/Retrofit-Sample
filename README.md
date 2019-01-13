@@ -175,7 +175,7 @@ ex.
     
     	// 두번째 방법
     	// Request newRequest = request.newBuilder()
-      	// .addHeader(SHPConstant.PARAM.KEY_ACCESS_TOKEN, PreferencesUtil.getAccessToken(context))
+      	// .addHeader(MyConstant.PARAM.KEY_ACCESS_TOKEN, PreferencesUtil.getAccessToken(context))
     	// .add(MyConstant.PARAM.HEADER_APP_VERSION, CommonUtil.localAppVersion(context))
      	// .add("Content-Type", "application/json;charset=utf-8") // GET, POST 일 경우
         // //.add("Content-Type", "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY) // multipart 인 경우
@@ -256,8 +256,8 @@ ex.
       RequestBody rqGender = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getGender());
       RequestBody rqNickName = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getNickName());
     
-    rqMap.put(SHPConstant.PARAM.GENDER, rqGender);
-    rqMap.put(SHPConstant.PARAM.NICK_NAME, rqNickName);
+    rqMap.put(MyConstant.PARAM.GENDER, rqGender);
+    rqMap.put(MyConstant.PARAM.NICK_NAME, rqNickName);
     
         public MultipartBody.Part getMpFile() {
                 return mpFile;
