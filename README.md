@@ -62,8 +62,8 @@ ex.
 
 **4. @FieldMap**
 
-    Field 형식을 통해 넘겨주는 값들이 여러개일 경우 FieldMap 사용한다. (Retrofit에서는 Map보다 HashMap 형식을 쓰기 권장)
-    form-encoded 데이터로 전송해야 하므로 (contentType 지정) @FormUrlEncoded 어노테이션 지정해줘야 한다. (안하면 오류)
+   Field 형식을 통해 넘겨주는 값들이 여러개일 경우 FieldMap 사용한다. (Retrofit에서는 Map보다 HashMap 형식을 쓰기 권장)
+   form-encoded 데이터로 전송해야 하므로 (contentType 지정) @FormUrlEncoded 어노테이션 지정해줘야 한다. (안하면 오류)
    ex. 
 
       @FormUrlEncoded 
