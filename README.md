@@ -46,7 +46,11 @@ Retrofit2는 안드로이드 REST API 통신 라이브러리입니다.
 ----------
 
 **전체 플로우**
-------
+----------
+
+
+
+
 
 **retrofit 정의**
 ------
@@ -60,7 +64,6 @@ AsyncTask 없이 Background Thread에서 실행되며 callback을 통해 Main Th
 Retrofit 문서 : [http://devflow.github.io/retrofit-kr/](http://devflow.github.io/retrofit-kr/)
 
 
-----------
 
 
 **Retrofit을 사용하는 이유?**
@@ -70,8 +73,6 @@ Retrofit은 AsyncTask로 구현된 통신이나 Volley에 비해 응답속도가
 
 참고 : [http://instructure.github.io/blog/2013/12/09/volley-vs-retrofit/](http://instructure.github.io/blog/2013/12/09/volley-vs-retrofit/)
 
-
-----------
 
 
 **#Retrofit2 는 기본적으로 OkHttp를 네트워킹 계층으로 활용하며 그 위에 구축된다.**
@@ -291,6 +292,7 @@ ex.
 -------------------
 
 **1) @Header 어노테이션 사용**
+
 ex. 
 
     @Headers("Cache-Control: max-age=640000")
