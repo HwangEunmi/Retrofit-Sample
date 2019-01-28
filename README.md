@@ -398,8 +398,7 @@ Request/Response 즉, 통신 중 일어나는 로그를 보고 싶을 때
 
 즉, 
 
-ex. 
-
+```java
     private void initApiSetting(Context context) {
             Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
                     .baseUrl(MyConstant.Url.BASE_URL + "/")
@@ -418,3 +417,4 @@ ex.
               Retrofit retrofit = retrofitBuilder.build();
               apiService = retrofit.create(ApiService.class);
     }
+```
