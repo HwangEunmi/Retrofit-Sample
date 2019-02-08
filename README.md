@@ -84,10 +84,10 @@ Retrofit은 AsyncTask로 구현된 통신이나 Volley에 비해 응답속도가
 ------
 **Retrofit 에는 Converter가 두가지가 있다.**
 
-**1)** **GsonConverterFactory.create() :** 결과값을 Gson으로 자동으로 파싱해서 JSON형태로 받을 수 있다. 
-
-**2)** **ScalarsConverterFactory.create() :** 결과값을 String으로 받는다.
-                                             그래서 Gson으로 내가 직접 파싱해야 한다.
+> **1)** **GsonConverterFactory.create() :** 결과값을 Gson으로 자동으로 파싱해서 JSON형태로 받을 수 있다. 
+> 
+> **2)** **ScalarsConverterFactory.create() :** 결과값을 String으로 받는다.
+>                                              그래서 Gson으로 내가 직접 파싱해야 한다.
 
 
 **나의 생각)** 만약 Response의 규격이 정해져 있다면
@@ -105,43 +105,39 @@ GsonConverterFactory.create() 를 사용하는 것이 좋고, API에 따라 가�
 **Retrofit에는 크게 7개의 어노테이션이 있다.**
 
 **1. @Query**
-
-ex. 
-
-    @GET("/posts") 
-    Call<List<ResponseGet>> getSecond(@Query("userId") String id);
-           
+```java
+@GET("/posts") 
+Call<List<ResponseGet>> getSecond(@Query("userId") String id);
+```           
 일 때, url은 http://jsonplaceholder.typicode.com/posts?userId=1 가 된다.
 
 
 **2. @Path** 
 
-ex. 
-
-    @GET("/posts/{userId}")
-    Call<ResponseGet> getFirst(@Path("userId") String id);
-
+```java
+@GET("/posts/{userId}")
+Call<ResponseGet> getFirst(@Path("userId") String id);
+```
    일 때, id로 들어간 String 값을 {userId} 로 넘겨준다. 
    즉, url은 http://jsonplaceholder.typicode.com/posts/1 가 된다.
 
 **3. @Field**        
      서버에 데이터를 보낼때 Request 데이터를 하나씩 지정해서 보내려면 사용한다.
     ContentType을 form-encoded로 지정하여 데이터를 전송해야 하므로 @FormUrlEncoded 어노테이션을 지정해줘야 한다. (안하면 오류 발생)            
-      ex.  
-
-     @FormUrlEncoded    
-     @POST("/login_url/")
-     Call<User> login(@field("email")String email,@field("password")String password); 
-
+```java
+@FormUrlEncoded    
+@POST("/login_url/")
+Call<User> login(@field("email")String email,@field("password")String password); 
+```
 **4. @FieldMap**
 
    Field 형식을 통해 넘겨주는 값들이 여러개일 경우 FieldMap 사용한다. 참고로 Retrofit에서는 Map보다 HashMap 형식을 쓰기 권장한다.
 ContentType을 form-encoded로 지정하여 데이터를 전송해야 하므로 @FormUrlEncoded 어노테이션 지정해줘야 한다. (안하면 오류 발생)
-   ex. 
-
-      @FormUrlEncoded 
-      @POST("/posts") 
-      Call<ResponseGet> postFirst(@FieldMap HashMap<String, Object> parameters);
+```java
+@FormUrlEncoded 
+@POST("/posts") 
+Call<ResponseGet> postFirst(@FieldMap HashMap<String, Object> parameters);
+```
            
 여기서 String은 키값, Object는 데이터이다.
 
@@ -150,11 +146,10 @@ ContentType을 form-encoded로 지정하여 데이터를 전송해야 하므로 
    Request로 넘겨주는 값이 Json형식일 경우 사용한다. 
    (ex. ActivitySearchModel.class)
    
-   ex. 
-
-    @POST("/users/")
-    Call<User> signUp(@Body User user);
-
+```java
+@POST("/users/")
+Call<User> signUp(@Body User user);
+```
  **나의 생각)** 어차피 보통 Data클래스 만드니까 @Field 보단 @Body 사용해도 될 듯 하다.) 
 
 **6. @Part**
@@ -163,12 +158,11 @@ ContentType을 form-encoded로 지정하여 데이터를 전송해야 하므로 
    서버에 데이터를 보낼때 Request 데이터를 하나씩 지정해서 보내려면 사용한다.
    이 때 @Multipart 어노테이션 사용함으로써 multipart 라는것을 지정해줘야 한다.
    
-   ex.
-
-     @Multipart
-     @POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
-     Call<String> getUpdateProfileInfo(@Part(“imageFile”) RequestBody file);
-
+```java
+@Multipart
+@POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
+Call<String> getUpdateProfileInfo(@Part(“imageFile”) RequestBody file);
+```
 
 
 **7. @PartMap**
@@ -176,35 +170,33 @@ ContentType을 form-encoded로 지정하여 데이터를 전송해야 하므로 
  Multipart 요청시 사용한다. (POST/PUT)
  Part 형식을 통해 넘겨주는 값들이 여러개일 경우 PartMap을 사용한다. 참고로 Retrofit에서는 Map보다 HashMap 형식을 쓰기 권장한다.
 이 때 @Multipart 어노테이션 사용함으로써 multipart 라는것을 지정해줘야 한다.
-
-ex. 
-
-    @Multipart
-    @POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
-    Call<String> getUpdateProfileInfo(@Part MultipartBody.Part file, @PartMap Map<String, RequestBody> info);
+```java
+@Multipart
+@POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
+Call<String> getUpdateProfileInfo(@Part MultipartBody.Part file, @PartMap Map<String, RequestBody> info);
+```
 
 이 때 image같은 File 객체는 RequestBody를 그냥 사용하는것 보다는 MultipartBody.Part로 한번 더 감싸는 것이 좋다.
 
-ex. 
-	
-
-    // Bitmap(이미지) -> File
-    if (path != null) {
-    File file = new File(path);
-      try {
-        OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+```java 
+// Bitmap(이미지) -> File
+if (path != null) {
+ File file = new File(path);
+  try {
+   OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
                                       bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
-        os.close();
-        RequestBody rqFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        mpFile = MultipartBody.Part.createFormData(MyConstant.PARAM.PROFILE_IMAGE, file.getName(), rqFile); // 키값, 파일이름, 데이터
-         } catch (FileNotFoundException e) {
-           e.printStackTrace();
-       } catch (IOException e) {
-          e.printStackTrace();
-      }
-    }
+os.close();
 
+RequestBody rqFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
 
+mpFile = MultipartBody.Part.createFormData(MyConstant.PARAM.PROFILE_IMAGE, file.getName(), rqFile); // 키값, 파일이름, 데이터
+ } catch (FileNotFoundException e) {
+  e.printStackTrace();
+  } catch (IOException e) {
+  e.printStackTrace();
+  }
+ }
+```
 ----------
 
 **retrofit에서 멀티파트 통신하기**
@@ -213,77 +205,77 @@ API 문서 상에서 Request들이 하나의 Map 또는 ObjectList에 들어가�
 
 모든 데이터들은 RequestBody에 들어갈 때 MediaType.parse()로 파싱하는데, 
 이때 일반적인 String이나 int같은 값들은 “text/plain”으로 하면 되지만
-
-ex. `RequestBody.create(MediaType.parse(“text/plain”), data);`
+```java
+RequestBody.create(MediaType.parse(“text/plain”), data);`
+```
 
 이미지 같은 File들은 “multipart/form-data”로 지정한다.
-
-ex. `RequestBody.create(MediaType.parse(“multipart/form-data”), data);`
-
+```java
+RequestBody.create(MediaType.parse(“multipart/form-data”), data);`
+```
 
 (물론 “image”로 넘겨도 되지만,
 
-**1) “multipart/form-data” :** 데이터의 크기가 클 경우에 사용
+> **1) “multipart/form-data” :** 데이터의 크기가 클 경우에 사용
+> 
+> **2) “image” 또는 “text/plain” :** 데이터의 크기가 작을 경우에 사용 이므로 “multipart/form-data” 로 넘기는 것이 좋다.)
 
-**2) “image” 또는 “text/plain” :** 데이터의 크기가 작을 경우에 사용
-이므로 “multipart/form-data” 로 넘기는 것이 좋다.)
+```java
 
-ex. 
-
-    @Multipart
-    @POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
-    Call<String> getUpdateProfileInfo(@Part MultipartBody.Part file, @PartMap Map<String, RequestBody> info);
+@Multipart
+@POST(MyConstant.Url.POST_PROFILE_IMAGE_UPLOAD)
+Call<String> getUpdateProfileInfo(@Part MultipartBody.Part file, @PartMap Map<String, RequestBody> info);
+```
 
 인 경우
-
-    /*Request 모델*/
-    public static class RQ {
-        /**
-         * 프로필 사진 File
-         */
-        private MultipartBody.Part mpFile;
-    
-        /**
-         * Request에 쓰이는 Map
-         */
-         private Map<String, RequestBody> rqMap;
-    
-    
-      public RQ(final String path, final Bitmap bitmap, final UserProfileInfoModel profileUpdateModel) {
-         super(); 
-         rqMap = new HashMap<>();
-         // Bitmap(이미지) -> File
-         if (path != null) {
-           File file = new File(path);
-             try { 
-              OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
-               bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
-               os.close();
+```java
+/*Request 모델*/
+public static class RQ {
+ /**
+ * 프로필 사진 File
+ */
+ private MultipartBody.Part mpFile;
+ /**
+ * Request에 쓰이는 Map
+ */
+ private Map<String, RequestBody> rqMap;
+  
+ public RQ(final String path, final Bitmap bitmap, final UserProfileInfoModel profileUpdateModel) {
+ super(); 
+ rqMap = new HashMap<>();
+ // Bitmap(이미지) -> File
+ if (path != null) {
+   File file = new File(path);
+   try { 
+    OutputStream os = new BufferedOutputStream(new FileOutputStream(file));
+   bitmap.compress(Bitmap.CompressFormat.JPEG, 100, os);
+   os.close();
      
-              RequestBody rqFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-    mpFile = MultipartBody.Part.createFormData(MyConstant.PARAM.PROFILE_IMAGE, file.getName(), rqFile); // 킷값, 파일 이름, 데이터
-                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                     } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+   RequestBody rqFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+   mpFile = MultipartBody.Part.createFormData(MyConstant.PARAM.PROFILE_IMAGE, file.getName(), rqFile); // 킷값, 파일 이름, 데이터
+   } catch (FileNotFoundException e) {
+    e.printStackTrace();
+   } catch (IOException e) {
+   e.printStackTrace();
+   }
+  }
     
-      RequestBody rqGender = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getGender());
-      RequestBody rqNickName = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getNickName());
+RequestBody rqGender = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getGender());
+ 
+RequestBody rqNickName = RequestBody.create(MediaType.parse("text/plain"), profileUpdateModel.getNickName());
     
-    rqMap.put(MyConstant.PARAM.GENDER, rqGender);
-    rqMap.put(MyConstant.PARAM.NICK_NAME, rqNickName);
-    
-        public MultipartBody.Part getMpFile() {
-                return mpFile;
-            }
-    
-            public Map<String, RequestBody> getRqMap() {
-                   return rqMap;
-            }
-        }
+rqMap.put(MyConstant.PARAM.GENDER, rqGender);
+rqMap.put(MyConstant.PARAM.NICK_NAME, rqNickName);
 
+public MultipartBody.Part getMpFile() {
+ return mpFile;
+ }
+ 
+public Map<String, RequestBody> getRqMap() {
+ return rqMap;
+  }
+ }
+```
 
 ----------
 
@@ -293,80 +285,84 @@ ex.
 
 **1) @Header 어노테이션 사용**
 
-ex. 
-
-    @Headers("Cache-Control: max-age=640000")
-    @GET("/widget/list")
-    Call<List<Widget>> widgetList();
-
+```java
+@Headers("Cache-Control: max-age=640000")
+@GET("/widget/list")
+Call<List<Widget>> widgetList();
+```
 나 
 
-ex. 
-
-    @Headers({
-        "Accept: application/vnd.github.v3.full+json",
-        "User-Agent: Retrofit-Sample-App"})
-    @GET("/users/{username}")
-    Call<User> getUser(@Path("username") String username);
-
+```java
+@Headers({
+ "Accept: application/vnd.github.v3.full+json",
+ "User-Agent: Retrofit-Sample-App"})
+@GET("/users/{username}")
+Call<User> getUser(@Path("username") String username);
+```
 
 **2) OkHttp의 Interceptor 사용**
 이런 식으로 annotation을 달아주면 되지만, 사실 모든 API에 적용하려고 할때는 번거로우므로 
 okHttp의 Interceptor로 header를 지정해주는 것이 좋다.
 
-ex. 
+```java
+Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+.baseUrl(MyConstant.Url.BASE_URL + "/")
+.addConverterFactory(ScalarsConverterFactory.create());
 
-    Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-       .baseUrl(MyConstant.Url.BASE_URL + "/")
-                    .addConverterFactory(ScalarsConverterFactory.create());
-    
-        // 모든 Http 요청에 헤더 추가한다고 할 때
-        Interceptor interceptor = new Interceptor() {
-        @Override
-        public okhttp3.Response intercept(Chain chain) throws IOException {
-           Request request = chain.request(); // 현재 Request를 가져온다.
-    	  // 첫번째 방법
-          Headers headers = new Headers.Builder()
+// 모든 Http 요청에 헤더 추가한다고 할 때
+Interceptor interceptor = new Interceptor() {
+ @Override
+ public okhttp3.Response intercept(Chain chain) throws IOException {
+ Request request = chain.request(); // 현재 Request를 가져온다.
+ // 첫번째 방법
+ Headers headers = new Headers.Builder()
     	                        .add(MyConstant.PARAM.KEY_ACCESS_TOKEN, PreferencesUtil.getAccessToken(context))
-                                        .add(MyConstant.PARAM.HEADER_APP_VERSION, CommonUtil.localAppVersion(context))
-     		            .add("Content-Type", "application/json;charset=utf-8") // GET, POST 일 경우
-                        //.add("Content-Type", "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY) // multipart 인 경우
-                       .build();
-    	   Request newRequest = request.newBuilder().headers(headers).build(); // 새로운 Request를 만든다. (헤더를 추가한)
-    
-    	// 두번째 방법
-    	// Request newRequest = request.newBuilder()
-      	// .addHeader(MyConstant.PARAM.KEY_ACCESS_TOKEN, PreferencesUtil.getAccessToken(context))
-    	// .add(MyConstant.PARAM.HEADER_APP_VERSION, CommonUtil.localAppVersion(context))
-     	// .add("Content-Type", "application/json;charset=utf-8") // GET, POST 일 경우
-        // //.add("Content-Type", "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY) // multipart 인 경우
-        // .build();
-    
-     okhttp3.Response response = chain.proceed(newRequest); // 새로운 Request로 통신을 하여 Response를 받는다.
-     return response;
-    	}
-      };
-      OkHttpClient.Builder builder = new OkHttpClient.Builder();
-      builder.interceptors().add(interceptor);
-      OkHttpClient client = builder.build();
-      retrofitBuilder.client(client);
-    
-      Retrofit retrofit = retrofitBuilder.build();
-      apiService = retrofit.create(ApiService.class);
 
+.add(MyConstant.PARAM.HEADER_APP_VERSION, CommonUtil.localAppVersion(context))
+
+.add("Content-Type", "application/json;charset=utf-8") // GET, POST 일 경우
+//.add("Content-Type", "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY) // multipart 인 경우
+
+.build();
+Request newRequest = request.newBuilder().headers(headers).build(); // 새로운 Request를 만든다. (헤더를 추가한)
+    
+// 두번째 방법
+// Request newRequest = request.newBuilder()
+// .addHeader(MyConstant.PARAM.KEY_ACCESS_TOKEN, PreferencesUtil.getAccessToken(context))
+// .add(MyConstant.PARAM.HEADER_APP_VERSION, CommonUtil.localAppVersion(context))
+// .add("Content-Type", "application/json;charset=utf-8") // GET, POST 일 경우
+//.add("Content-Type", "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY) // multipart 인 경우
+// .build();
+
+okhttp3.Response response = chain.proceed(newRequest); // 새로운 Request로 통신을 하여 Response를 받는다.
+ return response;
+  }
+ };
+ 
+ OkHttpClient.Builder builder = new OkHttpClient.Builder();
+ builder.interceptors().add(interceptor);
+ 
+ OkHttpClient client = builder.build();
+ retrofitBuilder.client(client);
+    
+ Retrofit retrofit = retrofitBuilder.build();
+ apiService = retrofit.create(ApiService.class);
+```
 
 ----------
 
 
 **통신 컨텐트타입**
 --------------
-**1) Get의 ContentType**
 
-key : "Content-Type", value : "application/json"
-
-**2) POST의 ContentType**
-
-key : "Content-Type", value : "application/json;charset=UTF-8" // content가 UTF-8로 인코딩 되어있다는 뜻 
+> **1) Get의 ContentType**
+> 
+> key : "Content-Type", value : "application/json"
+> 
+> **2) POST의 ContentType**
+> 
+> key : "Content-Type", value : "application/json;charset=UTF-8" //
+> content가 UTF-8로 인코딩 되어있다는 뜻
 
 (JSON의 기본 인코딩은 UTF-8이다. 
 
@@ -378,9 +374,10 @@ key : "Content-Type", value : "application/json;charset=UTF-8" // content가 UTF
 만약 ScalarsConverterFactory를 사용할 경우, 그냥 String 값을 RequestBody에 넣거나
 Data 클래스를 사용할 경우(JSON Object) Gson을 이용해서(toJson) String으로 바꾼 후 RequestBody에 넣고 통신 한다.
 
-**3) Multipart의 ContentType**
-
-key : "Content-Type", value : "multipart/form-data; boundary=" + MyConstant.FORM_DATA_BOUNDARY"
+> **3) Multipart의 ContentType**
+> 
+> key : "Content-Type", value : "multipart/form-data; boundary=" +
+> MyConstant.FORM_DATA_BOUNDARY"
 
 
 ----------
@@ -390,31 +387,29 @@ key : "Content-Type", value : "multipart/form-data; boundary=" + MyConstant.FORM
 ---------------------
 Request/Response 즉, 통신 중 일어나는 로그를 보고 싶을 때
   HttpLoggingInterceptor를 사용한다.
-  
-  ex. 
-
-    HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor();
-        logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
+```java
+HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor();
+logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+```
 즉, 
 
-ex. 
-
-    private void initApiSetting(Context context) {
-            Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                    .baseUrl(MyConstant.Url.BASE_URL + "/")
-                    .addConverterFactory(ScalarsConverterFactory.create());
+```java
+private void initApiSetting(Context context) {
+Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+.baseUrl(MyConstant.Url.BASE_URL + "/")
+.addConverterFactory(ScalarsConverterFactory.create());
     
-    	 // 통신 중 일어나는 로그를 인터셉트하는 Interceptor
-                HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor();
+// 통신 중 일어나는 로그를 인터셉트하는 Interceptor
+HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor();
                 logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
     
-               OkHttpClient.Builder builder = new OkHttpClient.Builder();
-               builder.interceptors().add(logInterceptor);
+OkHttpClient.Builder builder = new OkHttpClient.Builder();
+builder.interceptors().add(logInterceptor);
     
-              OkHttpClient client = builder.build();
-              retrofitBuilder.client(client);
+OkHttpClient client = builder.build();
+retrofitBuilder.client(client);
     
-              Retrofit retrofit = retrofitBuilder.build();
-              apiService = retrofit.create(ApiService.class);
-    }
+Retrofit retrofit = retrofitBuilder.build();
+apiService = retrofit.create(ApiService.class);
+}
+```
