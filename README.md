@@ -21,9 +21,13 @@ Retrofit2는 안드로이드 REST API 통신 라이브러리입니다.
  - [목차](#목차)
  - [전체 플로우](#전체-플로우)
   - [Retrofit 정의](#retrofit-정의)
+  - [Retrofit 작동방식 이해](#Retrofit-작동방식-이해) 
   -  [Retrofit의 Converter](#retrofit의-컨버터)
      - [GsonConverterFactory.create()](#GsonConverterFactory.create())
      - [ScalarsConverterFactory.create()](#ScalarsConverterFactory.create())
+  - [Retrofit에서 동기/비동기 방식](#retrofit에서-동기/비동기-방식)
+     - [통신결과를 Listener로 받기](#통신결과를-Listener로-받기)
+     - [cancel()로 요청 취소하기](#cancel()로-요청-취소하기)
   - [Retrofit의 어노테이션](#retrofit의-어노테이션)
      - [@Query](#1.-@Query)
      - [@Path](#@Path)
@@ -70,6 +74,7 @@ Retrofit 문서 : [http://devflow.github.io/retrofit-kr/](http://devflow.github.
 
 Retrofit 이외에 다른 라이브러리도 있지만 Retrofit을 사용하기로 한 이유는 성능과 간단한 구현방법 때문이다.
 Retrofit은 AsyncTask로 구현된 통신이나 Volley에 비해 응답속도가 매우 빠른것으로 나와있다.
+또한 동기/비동기 방식을 선택할 수 있으며 Call의 요청을 취소할 수도 있다. 
 
 참고 : [http://instructure.github.io/blog/2013/12/09/volley-vs-retrofit/](http://instructure.github.io/blog/2013/12/09/volley-vs-retrofit/)
 
@@ -77,18 +82,128 @@ Retrofit은 AsyncTask로 구현된 통신이나 Volley에 비해 응답속도가
 
 **#Retrofit2 는 기본적으로 OkHttp를 네트워킹 계층으로 활용하며 그 위에 구축된다.**
 
+----------
+
+**Retrofit 작동방식 이해**
+------
+
+네트워킹은 Android 애플리케이션에서 가장 중요한 부분중 하나이다. 
+
+초기에는 네트워킹을 처리하기위해 자체 HTTP클래스를 작성했지만, 시간이 지남에 따라 라이브러리에 의존하게 되었다. (작업속도를 높이기 위해)
+
+Retrofit은 인기있는 라이브러리 중 하나이다. 
+
+먼저 Retrofit은 Android 및 Java 용 HTTP 클라이언트 라이브러리인데
+
+Retrofit을 사용하면서 Android 앱에서 네트워킹이 더 쉬워졌다. 
+
+사용자 지정 헤더 및 요청 유형을 쉽게 추가할 수 있는 기능(Converter)등 많은 기능이 있으므로 쉽게 사용할 수 있다. 
+
+
+Retrofit 내에서 처리되는 방식을 살펴보기전에 사용법을 살펴보자.
+
+----------
+
+Retrofit을 사용하려면 다음 세가지 클래스가 필요하다.
+
+1. JSON 형태의 모델 클래스
+
+2. HTTP 작업을 정의하는(onSuccess/onFail) 인터페이스
+
+3. Retrofit.Builder를 선언한 클래스 (baseUrl과 Converter등을 선언한다. Interceptor를 추가하여 응답을 가공할수도 있다.)
+
+사용방법은 다음과 같다.
+
+**1. build.gradle에 추가한다.**
+
+```java
+implementation ‘com.squareup.retrofit2:retrofit:2.3.0’
+implementation ‘com.squareup.retrofit2:converter-gson:2.3.0’
+```  
+
+**2. JSON 형태의 모델 클래스를 생성한다.**
+
+**3. HTTP 요청을 수행하는 Call 메소드가 있는 API 인터페이스(APIService)를  생성한다. **
+
+   **(Retrofit은 @GET, @POST 등과 같은 어노테이션 리스트를 제공한다.) **
+ 
+ ```java
+@GET("/users/")
+Call<User> getInfo(@Query("name") String name);
+```  
+
+**4. Retrofit.Builder 클래스를 생성한다.**
+```java
+final Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+           .baseUrl(MyConstant.Url.BASE_URL + "/") // 뒤에 / 를 꼭 붙여야 한다.
+           .addConverterFactory(ScalarsConverterFactory.create());
+```  
+
+**5. APIService의 Call 메소드 객체를 선언하고 동기/비동기로 실행한다.**
+ ```java
+Retrofit retrofit = retrofitBuilder.build();
+APIService apiService = retrofit.create(ApiService.class);
+Call<User> call1 = apiService.getInfo("홍길동").enqueue();
+```  
+
+**6. 이제 서버에서 Response를 받아온 후 원하는 작업을 수행한다. **
+
+
+----------
+
+여기까지가 Retrofit의 작동방식이다. 이제 뒤에 어떤 일이 일어나는지 분석해본다.
+
+우리가 APIService의 객체를 만들때 내부에서는 다음과 같이 동작한다.
+
+```java
+APIService apiService = retrofit.create(ApiService.class);
+```  
+
+먼저 validateServiceInterface() 메소드를 호출하여 현 인터페이스가 유효한것인지를 판단한다.
+
+만약 유효하지 않은 경우 IllegalArgumentException을 호출한다.
+
+그런다음 eagerlyValidateMethods() 메소드를 호출하여 플랫폼 유형을 얻는다.
+
+그후 service.getDeclaredMethods() 메소드를 호출하여 APIService 인터페이스의 선언된 모든 메소드를 포함하는 배열을 리턴한다. 
+
+이로써 Retrofit.Builder가 해당 요청의 Annotation이나 매개변수등 정보를 알 수 있게 된다. 
+
+이 과정에서 Reflection 기법이 사용된다.
+
+
+OkHttp는 Retrofit 아래에 있다. OkHttp는 소켓에 연결하여 HTTP요청을 한다. 
+
+Retrofit과 OkHttp는 RequestBody와 ResponseBody 타입을 이용하여 통신을 한다. 
+
+순서는 ApiService > Retrofit > OkHttp 이다. 
+
+
 
 ----------
 
 **retrofit의 컨버터**
 ------
-**Retrofit 에는 Converter가 두가지가 있다.**
+**Retrofit 에는 Converter가 여러가지가 있다.**
 
 > **1)** **GsonConverterFactory.create() :** 결과값을 Gson으로 자동으로 파싱해서 JSON형태로 받을 수 있다. 
 > 
 > **2)** **ScalarsConverterFactory.create() :** 결과값을 String으로 받는다.
 >                                              그래서 Gson으로 내가 직접 파싱해야 한다.
 
+대표적인 두가지를 적었다. 
+
+Retrofit2은 Converter를 다중추가 가능하지만, GsonConverterFactory는 항상 마지막에 추가해야 한다.
+
+Call에 대해 Converter를 할 수 있냐는 물음에 항상 YES를 리턴하기 때문이다.
+
+```java
+Retrofit retrofit = new Retrofit.Builder()
+    .baseUrl("https://api.github.com")
+    .addConverterFactory(ProtoConverterFactory.create())
+    .addConverterFactory(GsonConverterFactory.create())
+    .build();
+```  
 
 **나의 생각)** 만약 Response의 규격이 정해져 있다면
 ex. int code
@@ -98,6 +213,67 @@ GsonConverterFactory.create() 를 사용하는 것이 좋고, API에 따라 가�
 또, 확실하진 않지만 두개 동시에는 사용이 불가능한듯 하다.
 
 
+----------
+
+**Retrofit에서 동기/비동기 방식**
+---------------
+**Retrofit은 동기/비동기 방식을 선택할 수 있다.**
+
+**동기식**
+
+```java
+Call<User> call = 
+    apiService.getUser("홍길동");
+Response<User> response = call.execute(); 
+
+// This will throw IllegalStateException:
+Response<User> response = call.execute();
+
+Call<User> call2 = call.clone();
+// This will not throw:
+Response<User> response = call2.execute();
+```   
+
+excute()는 한번만 가능하다. 두 번 execute를 시도하면 실패하게 된다.
+하지만 clone()메소드로 인스턴스를 복제할 수 있으며 비용은 매우 적다.
+
+**비동기식**
+
+```java
+Call<User> call = 
+    apiService.getUser("홍길동");
+Response<User> response = call.enqueue(); 
+```   
+
+**통신결과를 Listener로 받기**
+---------------
+또한 통신결과를 Listener로 받을 수 있다. 
+
+```java
+call.enqueue(new Callback<User>() {
+  @Override void onResponse(/* ... */) {
+    // ...
+  }
+
+  @Override void onFailure(Throwable t) {
+    // ...
+  }
+}); 
+
+```   
+
+**cancel()로 요청 취소하기**
+---------------
+동기/비동기 방식으로 요청을 한 후 cancel()로 통신을 취소할 수도 있다. 
+
+```java
+Call<User> call = 
+    apiService.getUser("홍길동");
+Response<User> response = call.enqueue(); 
+// Call cancel
+call.cancel();
+```   
+     
 ----------
 
 **retrofit의-어노테이션**
