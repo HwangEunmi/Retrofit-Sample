@@ -56,7 +56,7 @@ Retrofit2는 안드로이드 REST API 통신 라이브러리입니다.
 
 
 
-**retrofit 정의**
+**Retrofit 정의**
 ------
 ![1_wvpjbw4kezkwp0yvclzwlg](https://user-images.githubusercontent.com/21076910/51786123-8b2ed980-21a3-11e9-9d43-750fea261c0d.jpeg)
 
@@ -123,9 +123,10 @@ implementation ‘com.squareup.retrofit2:converter-gson:2.3.0’
 
 **2. JSON 형태의 모델 클래스를 생성한다.**
 
-**3. HTTP 요청을 수행하는 Call 메소드가 있는 API 인터페이스(APIService)를  생성한다. **
+**3. HTTP 요청을 수행하는 Call 메소드가 있는 API 인터페이스(APIService)를  생성한다.**
 
-   **(Retrofit은 @GET, @POST 등과 같은 어노테이션 리스트를 제공한다.) **
+
+**(Retrofit은 @GET, @POST 등과 같은 어노테이션 리스트를 제공한다.)**
  
  ```java
 @GET("/users/")
@@ -146,7 +147,7 @@ APIService apiService = retrofit.create(ApiService.class);
 Call<User> call1 = apiService.getInfo("홍길동").enqueue();
 ```  
 
-**6. 이제 서버에서 Response를 받아온 후 원하는 작업을 수행한다. **
+**6. 이제 서버에서 Response를 받아온 후 원하는 작업을 수행한다.**
 
 
 ----------
@@ -171,6 +172,7 @@ APIService apiService = retrofit.create(ApiService.class);
 
 이 과정에서 Reflection 기법이 사용된다.
 
+![image](/image/image.PNG)
 
 OkHttp는 Retrofit 아래에 있다. OkHttp는 소켓에 연결하여 HTTP요청을 한다. 
 
@@ -178,11 +180,11 @@ Retrofit과 OkHttp는 RequestBody와 ResponseBody 타입을 이용하여 통신�
 
 순서는 ApiService > Retrofit > OkHttp 이다. 
 
-
+![structure](/image/structure.PNG)
 
 ----------
 
-**retrofit의 컨버터**
+**Retrofit의 컨버터**
 ------
 **Retrofit 에는 Converter가 여러가지가 있다.**
 
@@ -276,7 +278,7 @@ call.cancel();
      
 ----------
 
-**retrofit의-어노테이션**
+**Retrofit의-어노테이션**
 ---------------
 **Retrofit에는 크게 7개의 어노테이션이 있다.**
 
@@ -375,7 +377,7 @@ mpFile = MultipartBody.Part.createFormData(MyConstant.PARAM.PROFILE_IMAGE, file.
 ```
 ----------
 
-**retrofit에서 멀티파트 통신하기**
+**Retrofit에서 멀티파트 통신하기**
 -------------------------
 API 문서 상에서 Request들이 하나의 Map 또는 ObjectList에 들어가는 동급 데이터라고 하더라도 이미지 같은 File은 RequestBody에 넣고 MultipartBody.Part로 한번 더 감싸서 따로 @Part 부여해야 한다.
 
@@ -456,7 +458,7 @@ public Map<String, RequestBody> getRqMap() {
 ----------
 
 
-**retrofit에서 헤더 설정하는법**
+**Retrofit에서 헤더 설정하는법**
 -------------------
 
 **1) @Header 어노테이션 사용**
@@ -559,7 +561,7 @@ Data 클래스를 사용할 경우(JSON Object) Gson을 이용해서(toJson) Str
 ----------
 
 
-**retrofit을 사용하면서로그찍는 법**
+**Retrofit을 사용하면서로그찍는 법**
 ---------------------
 Request/Response 즉, 통신 중 일어나는 로그를 보고 싶을 때
   HttpLoggingInterceptor를 사용한다.
