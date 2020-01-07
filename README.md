@@ -316,6 +316,7 @@ Builder(Retrofit retrofit, Method method) {
 
 이로인해 인터페이스에 있는 모든 메소드를 사용할 수 있는 것이다.
 
+전체적인 흐름은 아래와 같다.
 
 ![image](/image/image.PNG)
 
