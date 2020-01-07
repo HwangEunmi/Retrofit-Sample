@@ -154,23 +154,168 @@ Call<User> call1 = apiService.getInfo("홍길동").enqueue();
 
 여기까지가 Retrofit의 작동방식이다. 이제 뒤에 어떤 일이 일어나는지 분석해본다.
 
-우리가 APIService의 객체를 만들때 내부에서는 다음과 같이 동작한다.
-
 ```java
 APIService apiService = retrofit.create(ApiService.class);
 ```  
+우리가 APIService의 객체를 만들때 내부에서는 다음과 같이 동작한다.
 
+```java
+ public <T> T create(final Class<T> service) {
+    Utils.validateServiceInterface(service);
+    if (validateEagerly) {
+      eagerlyValidateMethods(service);
+    }
+    return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[] { service },
+        new InvocationHandler() {
+          private final Platform platform = Platform.get();
+          private final Object[] emptyArgs = new Object[0];
+
+          @Override public @Nullable Object invoke(Object proxy, Method method,
+              @Nullable Object[] args) throws Throwable {
+            // If the method is a method from Object then defer to normal invocation.
+            if (method.getDeclaringClass() == Object.class) {
+              return method.invoke(this, args);
+            }
+            if (platform.isDefaultMethod(method)) {
+              return platform.invokeDefaultMethod(method, service, proxy, args);
+            }
+            return loadServiceMethod(method).invoke(args != null ? args : emptyArgs);
+          }
+        });
+  }
+```  
 먼저 validateServiceInterface() 메소드를 호출하여 현 인터페이스가 유효한것인지를 판단한다.
+
+```java
+ static <T> void validateServiceInterface(Class<T> service) {
+    if (!service.isInterface()) {
+      throw new IllegalArgumentException("API declarations must be interfaces.");
+    }
+    // Prevent API interfaces from extending other interfaces. This not only avoids a bug in
+    // Android (http://b.android.com/58753) but it forces composition of API declarations which is
+    // the recommended pattern.
+    if (service.getInterfaces().length > 0) {
+      throw new IllegalArgumentException("API interfaces must not extend other interfaces.");
+    }
+  }
+```  
 
 만약 유효하지 않은 경우 IllegalArgumentException을 호출한다.
 
 그런다음 eagerlyValidateMethods() 메소드를 호출하여 플랫폼 유형을 얻는다.
 
-그후 service.getDeclaredMethods() 메소드를 호출하여 APIService 인터페이스의 선언된 모든 메소드를 포함하는 배열을 리턴한다. 
+```java
+private void eagerlyValidateMethods(Class<?> service) {
+    Platform platform = Platform.get();
+    for (Method method : service.getDeclaredMethods()) {
+      if (!platform.isDefaultMethod(method) && !Modifier.isStatic(method.getModifiers())) {
+        loadServiceMethod(method);
+      }
+    }
+  }
+```  
 
-이로써 Retrofit.Builder가 해당 요청의 Annotation이나 매개변수등 정보를 알 수 있게 된다. 
+```java
+class Platform {
+  private static final Platform PLATFORM = findPlatform();
 
-이 과정에서 Reflection 기법이 사용된다.
+  static Platform get() {
+    return PLATFORM;
+  }
+
+  private static Platform findPlatform() {
+    try {
+      Class.forName("android.os.Build");
+      if (Build.VERSION.SDK_INT != 0) {
+        return new Android();
+      }
+    } catch (ClassNotFoundException ignored) {
+    }
+    try {
+      Class.forName("java.util.Optional");
+      return new Java8();
+    } catch (ClassNotFoundException ignored) {
+    }
+    return new Platform();
+  }
+  /* More methods of this class
+  ........
+  ........
+  ......... 
+  */
+}
+```
+
+플랫폼 유형을 얻은 후 eagerlyValidateMethods()내에서 service.getDeclaredMethods()를 호출하여
+
+인터페이스에 선언된 모든 메소드 객체를 포함하는 배열을 리턴한다. (여기서 인터페이스란 ApiService 클래스)
+```java
+public Method[] getDeclaredMethods() throws SecurityException {
+    Method[] result = getDeclaredMethodsUnchecked(false);
+    for (Method m : result) {
+        // Throw NoClassDefFoundError if types cannot be resolved.
+        m.getReturnType();
+        m.getParameterTypes();
+    }
+    return result;
+}
+```  
+
+그후 loadServiceMethod()내에서 ServiceMethodCache라는 Map에 메소드를 put하고 필요할 경우 get하는데
+
+```java
+private final Map<Method, ServiceMethod<?>> serviceMethodCache = new ConcurrentHashMap<>();
+ServiceMethod<?> loadServiceMethod(Method method) {
+  ServiceMethod<?> result = serviceMethodCache.get(method);
+  if (result != null) return result;
+
+  synchronized (serviceMethodCache) {
+    result = serviceMethodCache.get(method);
+    if (result == null) {
+      result = ServiceMethod.parseAnnotations(this, method);
+      serviceMethodCache.put(method, result);
+    }
+  }
+  return result;
+}
+```  
+
+이때 put 즉 저장할때, 메소드의 Annotation이나 매개변수타입등을 파싱하여 같이 저장한다.
+
+```java
+abstract class ServiceMethod<T> {
+  static <T> ServiceMethod<T> parseAnnotations(Retrofit retrofit, Method method) {
+    RequestFactory requestFactory = RequestFactory.parseAnnotations(retrofit, method);
+
+    Type returnType = method.getGenericReturnType();
+    if (Utils.hasUnresolvableType(returnType)) {
+      throw methodError(method,
+          "Method return type must not include a type variable or wildcard: %s", returnType);
+    }
+    if (returnType == void.class) {
+      throw methodError(method, "Service methods cannot return void.");
+    }
+
+    return HttpServiceMethod.parseAnnotations(retrofit, method, requestFactory);
+  }
+
+  abstract @Nullable T invoke(Object[] args);
+}
+}
+```  
+
+```java
+Builder(Retrofit retrofit, Method method) {
+  this.retrofit = retrofit;
+  this.method = method;
+  this.methodAnnotations = method.getAnnotations();
+  this.parameterTypes = method.getGenericParameterTypes();
+  this.parameterAnnotationsArray = method.getParameterAnnotations();
+}
+```  
+
+이로인해 인터페이스에 있는 모든 메소드를 사용할 수 있는 것이다.
+
 
 ![image](/image/image.PNG)
 
