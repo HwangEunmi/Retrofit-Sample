@@ -328,6 +328,13 @@ Retrofit과 OkHttp는 RequestBody와 ResponseBody 타입을 이용하여 통신�
 
 ![structure](/image/structure.PNG)
 
+
+Retrofit에서 사용된 Dynamic Proxy 에 대한 설명은 이 곳에서 볼 수 있다. 
+
+참고 URL : https://blog.naver.com/cncn6666/221784973026
+
+
+
 ----------
 
 **Retrofit의 컨버터**
