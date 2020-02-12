@@ -725,6 +725,11 @@ logInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 즉, 
 
 ```java
+    private void initApiSetting(Context context) {
+            Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+                    .baseUrl(MyConstant.Url.BASE_URL + "/")
+                    .addConverterFactory(ScalarsConverterFactory.create());
+
 private void initApiSetting(Context context) {
 Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
 .baseUrl(MyConstant.Url.BASE_URL + "/")
@@ -740,6 +745,9 @@ builder.interceptors().add(logInterceptor);
 OkHttpClient client = builder.build();
 retrofitBuilder.client(client);
     
+              Retrofit retrofit = retrofitBuilder.build();
+              apiService = retrofit.create(ApiService.class);
+    }
 Retrofit retrofit = retrofitBuilder.build();
 apiService = retrofit.create(ApiService.class);
 }
